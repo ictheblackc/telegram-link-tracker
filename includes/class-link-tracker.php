@@ -7,11 +7,13 @@ class Telegram_Link_Tracker {
     public static function init() {
         add_action('init', [self::class, 'register_cpt']);
         add_action('rest_api_init', [self::class, 'register_routes']);
+        add_filter('manage_telegram_bot_link_posts_columns', [self::class, 'add_admin_columns']);
+        add_action('manage_telegram_bot_link_posts_custom_column', [self::class, 'render_admin_columns'], 10, 2);
     }
     
     public static function register_cpt() {
         register_post_type('telegram_bot_link', [
-            'label' => 'Ссылки Telegram-бота',
+            'label' => 'Telegram bot links',
             'public' => false,
             'show_ui' => true,
             'supports' => ['title'],
@@ -31,6 +33,22 @@ class Telegram_Link_Tracker {
             'callback' => [self::class, 'get_link'],
             'permission_callback' => '__return_true',
         ]);
+    }
+
+    public static function add_admin_columns($columns) {
+        $columns['full_url'] = 'Full URL';
+        return $columns;
+    }
+
+    public static function render_admin_columns($column, $post_id) {
+        if ($column === 'full_url') {
+            $full_url = get_post_meta($post_id, 'full_url', true);
+            if ($full_url) {
+                echo '<a href="' . esc_url($full_url) . '" target="_blank">' . esc_html($full_url) . '</a>';
+            } else {
+                echo '<em>—</em>';
+            }
+        }
     }
     
     /**
@@ -55,8 +73,8 @@ class Telegram_Link_Tracker {
             'posts_per_page' => 1,
         ]);
         
-        if ($inks->have_posts()) {
-            return ['short_id' => $inks->posts[0]->post_title];
+        if ($links->have_posts()) {
+            return ['short_id' => $links->posts[0]->post_title];
         }
         
         $short_id = substr(md5(uniqid('', true)), 0, 6);
