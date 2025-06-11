@@ -2,6 +2,8 @@
 
 /*
  * Plugin Name: Telegram Link Tracker
+ * Author: ictheblackc
+ * Author URI: https://github.com/ictheblackc
  */
 
 defined('ABSPATH') || exit;
